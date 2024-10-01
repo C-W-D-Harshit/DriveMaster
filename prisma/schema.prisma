@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  documents    Document[]
+  folders      Folder[]
+  permissions   Permission[]
+  activityLogs  ActivityLog[]
+}
+
+model Document {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  content   String   // You might consider Json if you have rich content
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    DocumentStatus @default(draft)
+  
+  user      User     @relation(fields: [userId], references: [id])
+  versions   Version[]
+  sharedLinks SharedLink[]
+  activityLogs ActivityLog[]
+}
+
+model Folder {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+  permissions Permission[]
+
+  ActivityLog ActivityLog[]
+}
+
+model Permission {
+  id        String @id @default(uuid()) @db.Uuid
+  userId    String @db.Uuid
+  folderId  String @db.Uuid
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+  canShare  Boolean @default(false)
+
+  user      User   @relation(fields: [userId], references: [id])
+  folder    Folder @relation(fields: [folderId], references: [id])
+}
+
+model SharedLink {
+  id          String   @id @default(uuid()) @db.Uuid
+  documentId  String   @db.Uuid
+  link        String   @unique
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id])
+}
+
+model Version {
+  id          String   @id @default(uuid()) @db.Uuid
+  documentId  String   @db.Uuid
+  content     String
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id])
+}
+
+model ActivityLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  action       String
+  documentId  String?  @db.Uuid
+  folderId    String?  @db.Uuid
+  timestamp   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  document    Document? @relation(fields: [documentId], references: [id])
+  folder      Folder?   @relation(fields: [folderId], references: [id])
+}
+
+enum DocumentStatus {
+  draft
+  published
+  archived
+}
