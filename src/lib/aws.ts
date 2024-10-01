@@ -8,6 +8,12 @@ import {
 } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import {
+  ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
+} from "@aws-sdk/client-s3";
+
+export const BUCKET_NAME = process.env.S3_BUCKET_NAME || ""; // Your S3 bucket name
 
 // Initialize S3 Client
 const s3Client = new S3Client({
@@ -121,5 +127,51 @@ export const generatePresignedUrl = async (
   } catch (error) {
     console.error("Error generating pre-signed URL:", error);
     throw new Error("Failed to generate pre-signed URL");
+  }
+};
+
+/**
+ * Creates a folder in the specified S3 bucket.
+ * @param folderName - The name of the folder to create.
+ */
+export const createFolderInS3 = async (folderName: string): Promise<void> => {
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: `${folderName}/`, // S3 uses the trailing slash to identify a folder
+  };
+
+  const command = new PutObjectCommand(params);
+  await s3Client.send(command);
+};
+
+/**
+ * List all files and folders in a specified directory in S3.
+ * @param bucketName - The name of the S3 bucket.
+ * @param prefix - The path of the directory to list (e.g., 'my-folder/').
+ * @returns An array of file and folder names.
+ */
+export const listFilesAndFoldersInS3 = async (
+  bucketName: string,
+  prefix: string
+) => {
+  const command = new ListObjectsV2Command({
+    Bucket: bucketName,
+    Prefix: prefix,
+    Delimiter: "/", // Use delimiter to get "folders"
+  });
+
+  try {
+    const response: ListObjectsV2CommandOutput = await s3Client.send(command);
+
+    const files = response.Contents?.map((item) => item.Key) || []; // Files
+    const folders =
+      response.CommonPrefixes?.map((prefix) => prefix.Prefix) || []; // Folders
+
+    console.log("Files:", files);
+    console.log("Folders:", folders);
+    return { files, folders };
+  } catch (error) {
+    console.error("Error listing files and folders in S3:", error);
+    throw new Error("Failed to list files and folders");
   }
 };

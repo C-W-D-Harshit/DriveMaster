@@ -24,11 +24,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import { useState } from "react";
+import { NewFolderDialogComponent } from "./new-folder-dialog";
+import { toast } from "sonner";
+import { createFolder } from "@/actions/folderActions";
+import { useRouter } from "next/navigation";
 
 export function StorageOverview() {
   // const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   // const [selectAll, setSelectAll] = useState(false);
+  const router = useRouter();
 
+  type Dialogs = "newFolder" | "fileUpload" | "folderUpload";
+
+  const [openDialogs, setOpenDialogs] = useState<Record<Dialogs, boolean>>({
+    newFolder: false,
+    fileUpload: false,
+    folderUpload: false,
+  });
   const files = [
     {
       name: "Toba Lake Proposal 2023.doc",
@@ -61,6 +74,17 @@ export function StorageOverview() {
       modified: "27/03/2023 - 16:21",
     },
   ];
+
+  const handleNewFolder = async (folderName: string) => {
+    const toastId = toast.loading("Creating folder...");
+    try {
+      await createFolder(folderName);
+      router.push("/my-storage");
+      toast.success("Folder created successfully.", { id: toastId });
+    } catch (error) {
+      toast.error("Error creating folder.", { id: toastId });
+    }
+  };
   return (
     <div className="bg-background text-foreground">
       <div className="flex justify-between items-center mb-8">
@@ -95,12 +119,23 @@ export function StorageOverview() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-background">
-              <DropdownMenuItem>New Folder</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  setOpenDialogs({ ...openDialogs, newFolder: true })
+                }
+              >
+                New Folder
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>File Upload</DropdownMenuItem>
               <DropdownMenuItem>Folder Upload</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <NewFolderDialogComponent
+            isOpen={openDialogs.newFolder}
+            onClose={() => setOpenDialogs({ ...openDialogs, newFolder: false })}
+            onCreateFolder={(folderName) => handleNewFolder(folderName)}
+          />
         </div>
       </div>
 
