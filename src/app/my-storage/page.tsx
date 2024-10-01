@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
+import { format } from "date-fns";
 
 export default async function Page() {
   const data = await Promise.all([
@@ -26,50 +27,21 @@ export default async function Page() {
   const [folders, documents] = data;
 
   console.log(folders, documents);
-  const files = [
-    {
-      name: "Classroom",
-      type: "folder",
-      owner: "me",
-      lastModified: "Sep 27, 2024",
-      size: "—",
-    },
-    {
-      name: "Scribbl Transcription",
-      type: "folder",
-      owner: "me",
-      lastModified: "Jan 4, 2024",
-      size: "—",
-    },
-    {
-      name: "Untitled folder",
-      type: "folder",
-      owner: "me",
-      lastModified: "3:13 PM",
-      size: "—",
-    },
-    {
-      name: "Untitled folder",
-      type: "folder",
-      owner: "me",
-      lastModified: "Sep 11, 2024",
-      size: "—",
-    },
-    {
-      name: "Data Collection for Monthly Review Meeting(Accounts)",
-      type: "form",
-      owner: "me",
-      lastModified: "Aug 30, 2024",
-      size: "1 KB",
-    },
-    {
-      name: "Data Collection for Monthly Review Meeting(HR)",
-      type: "form",
-      owner: "me",
-      lastModified: "Aug 30, 2024",
-      size: "1 KB",
-    },
-  ];
+  const foldersData = folders.map((folder) => ({
+    type: "folder",
+    name: folder.name,
+    owner: folder.userId,
+    lastModified: folder.updatedAt,
+    size: "-",
+  }));
+
+  // const filesData = documents.map((document) => ({
+  //   type: document.type,
+  //   name: document.name,
+  //   owner: document.userId,
+  //   lastModified: document.updatedAt,
+  //   size: document.size,
+  // }));
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -129,7 +101,7 @@ export default async function Page() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {files.map((file, index) => (
+          {foldersData.map((file, index) => (
             <TableRow key={index}>
               <TableCell className="font-medium">
                 <div className="flex items-center space-x-2">
@@ -155,10 +127,12 @@ export default async function Page() {
                     alt="User"
                     className="h-6 w-6 rounded-full"
                   />
-                  <span>{file.owner}</span>
+                  <span>{"Me"}</span>
                 </div>
               </TableCell>
-              <TableCell>{file.lastModified}</TableCell>
+              <TableCell>
+                {format(new Date(file.lastModified), "MM/dd/yyyy")}
+              </TableCell>
               <TableCell>{file.size}</TableCell>
               <TableCell>
                 <Button variant="ghost" size="sm">
