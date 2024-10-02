@@ -3,6 +3,7 @@
 import { createFolderInS3 } from "@/lib/aws";
 import { prisma } from "@/lib/prisma";
 import { DUMMYUSERID } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
 
 /**
  * Creates a folder in the database and S3 simultaneously.
@@ -47,6 +48,8 @@ export const createFolder = async (folderName: string): Promise<string> => {
 
     // Wait for both promises to resolve
     await Promise.all([s3Promise, prismaPromise]);
+
+    revalidatePath("/my-storage");
 
     return "Folder created successfully.";
   } catch (error) {
