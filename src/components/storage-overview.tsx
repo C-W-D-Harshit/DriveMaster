@@ -29,6 +29,7 @@ import { NewFolderDialogComponent } from "./new-folder-dialog";
 import { toast } from "sonner";
 import { createFolder } from "@/actions/folderActions";
 import { useRouter } from "next/navigation";
+import { SleekFileUploadDialog } from "./sleek-file-upload-dialog";
 
 export function StorageOverview() {
   // const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -127,7 +128,13 @@ export function StorageOverview() {
                 New Folder
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>File Upload</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  setOpenDialogs({ ...openDialogs, fileUpload: true })
+                }
+              >
+                File Upload
+              </DropdownMenuItem>
               <DropdownMenuItem>Folder Upload</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -135,6 +142,12 @@ export function StorageOverview() {
             isOpen={openDialogs.newFolder}
             onClose={() => setOpenDialogs({ ...openDialogs, newFolder: false })}
             onCreateFolder={(folderName) => handleNewFolder(folderName)}
+          />
+          <SleekFileUploadDialog
+            open={openDialogs.fileUpload}
+            setOpen={() =>
+              setOpenDialogs({ ...openDialogs, fileUpload: false })
+            }
           />
         </div>
       </div>
