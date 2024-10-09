@@ -72,10 +72,12 @@ export default function Header({
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink href={`/my-storage`}>
-                  <BreadcrumbPage>My Storage</BreadcrumbPage>
+                  <BreadcrumbPage className="text-xl font-semibold">
+                    My Storage
+                  </BreadcrumbPage>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator />
+              {keySplitLength > 1 && <BreadcrumbSeparator />}
               {keySplit?.map((key, index) => {
                 if (index === keySplitLength - 1) return null;
                 const generateHref = (index: number): string => {
@@ -87,7 +89,9 @@ export default function Header({
                   <>
                     <BreadcrumbItem key={index}>
                       <BreadcrumbLink href={generateHref(index + 1)}>
-                        <BreadcrumbPage>{key}</BreadcrumbPage>
+                        <BreadcrumbPage className="text-xl font-semibold">
+                          {key}
+                        </BreadcrumbPage>
                       </BreadcrumbLink>
                     </BreadcrumbItem>
                     {index !== keySplitLength - 2 && <BreadcrumbSeparator />}
