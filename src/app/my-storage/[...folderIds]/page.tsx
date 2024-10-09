@@ -11,23 +11,32 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import Header from "../Header";
 import DoubleClickLink from "@/components/DoubleClickLink";
-import Header from "./Header";
 
-export default async function Page() {
+export default async function Page({
+  params: { folderIds },
+}: {
+  // array of folder IDs
+  params: {
+    folderIds: string[];
+  };
+}) {
   const data = await Promise.all([
-    prisma.folder.findMany({
+    prisma.folder.findUnique({
       where: {
-        parentId: null,
+        id: folderIds[folderIds.length - 1],
       },
-    }),
-    prisma.document.findMany({
-      where: {
-        folderId: null,
+      include: {
+        subfolders: true,
+        documents: true,
       },
     }),
   ]);
-  const [folders, documents] = data;
+  const [parentFolder] = data;
+
+  const folders = parentFolder?.subfolders ?? [];
+  const documents = parentFolder?.documents ?? [];
 
   console.log(folders, documents);
   const foldersData = folders.map((folder) => ({
@@ -49,9 +58,10 @@ export default async function Page() {
   }));
 
   const allData = [...foldersData, ...filesData];
+
   return (
     <div>
-      <Header folder={null} />
+      <Header folder={parentFolder} />
       <Table>
         <TableHeader>
           <TableRow>
@@ -66,27 +76,29 @@ export default async function Page() {
           {allData.map((file, index) => (
             <TableRow key={index}>
               <TableCell className="font-medium">
-                <div className="flex items-center space-x-2">
-                  {file.type === "folder" && (
-                    <FolderIcon className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  {file.type === "file" && (
-                    <FileIcon className="h-5 w-5 text-blue-500" />
-                  )}
-                  {file.type === "spreadsheet" && (
-                    <FileIcon className="h-5 w-5 text-green-500" />
-                  )}
-                  {file.type === "form" && (
-                    <FileIcon className="h-5 w-5 text-purple-500" />
-                  )}
-                  {file.type === "folder" ? (
-                    <DoubleClickLink href={`/my-storage/${file.id}`}>
-                      {file.name}
-                    </DoubleClickLink>
-                  ) : (
+                <DoubleClickLink
+                  href={`${
+                    file.type === "folder"
+                      ? `/my-storage/${folderIds.join("/")}/${file.id}`
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    {file.type === "folder" && (
+                      <FolderIcon className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    {file.type === "file" && (
+                      <FileIcon className="h-5 w-5 text-blue-500" />
+                    )}
+                    {file.type === "spreadsheet" && (
+                      <FileIcon className="h-5 w-5 text-green-500" />
+                    )}
+                    {file.type === "form" && (
+                      <FileIcon className="h-5 w-5 text-purple-500" />
+                    )}
                     <span>{file.name}</span>
-                  )}
-                </div>
+                  </div>
+                </DoubleClickLink>
               </TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">

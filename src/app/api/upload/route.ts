@@ -1,4 +1,5 @@
-import { BUCKET_NAME, s3Client } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import { BUCKET_NAME, DUMMYUSERID, s3Client } from "@/lib/utils";
 import { Upload } from "@aws-sdk/lib-storage";
 import { NextResponse } from "next/server";
 
@@ -9,8 +10,12 @@ export async function POST(req: Request) {
     file,
     key,
     metaData,
-  }: {
+    folderId = null,
+  }: // pathname,
+  {
     file: Buffer;
+    folderId: string | null;
+    pathname: string;
     key: string | undefined;
     metaData: {
       name: string;
@@ -47,6 +52,19 @@ export async function POST(req: Request) {
           });
 
           await upload.done();
+
+          // After upload is complete, update Postgres
+          await prisma.document.create({
+            data: {
+              title: metaData.name,
+              content: key ?? metaData.name, // You can use S3 Key as content or add file URL later
+              userId: DUMMYUSERID, // Replace with actual user ID from session or auth
+              folderId: folderId ?? null, // Optional: Folder ID if it's provided
+              status: "published", // Set as needed
+            },
+          });
+
+          // revalidatePath(pathname, "page");
 
           controller.enqueue("Upload complete");
           controller.close();

@@ -14,19 +14,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useParams, usePathname, useRouter } from "next/navigation";
 
 export function SleekFileUploadDialog({
   open,
   setOpen,
+  path,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
+  path?: string;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const folderIds: string[] = Array.isArray(params.folderIds)
+    ? params.folderIds
+    : [params.folderIds];
+  const parentId = folderIds[folderIds.length - 1];
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     if (rejectedFiles.length > 0) {
@@ -58,6 +69,9 @@ export function SleekFileUploadDialog({
       body: JSON.stringify({
         file: await fileToBase64(file), // Helper function to convert file to base64
         metaData,
+        folderId: parentId,
+        key: `${path}${file.name}`,
+        pathname,
       }),
     });
 
@@ -84,6 +98,7 @@ export function SleekFileUploadDialog({
         setUploadProgress(percentage);
       }
     }
+    router.refresh(); // Reload the page to show the updated file
     setIsCompleted(true);
     setIsUploading(false);
   };

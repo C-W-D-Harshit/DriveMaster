@@ -142,6 +142,9 @@ export const generatePresignedUrl = async (
  * @param folderName - The name of the folder to create.
  */
 export const createFolderInS3 = async (folderName: string): Promise<void> => {
+  if (!folderName || folderName.trim() === "") {
+    throw new Error("Folder path is required.");
+  }
   const params = {
     Bucket: BUCKET_NAME,
     Key: `${folderName}/`, // S3 uses the trailing slash to identify a folder

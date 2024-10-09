@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, handleNewFolder } from "@/lib/utils";
 import { MoreVertical, PlusIcon, SortAsc } from "lucide-react";
 // import { useState } from "react";
 // import { Checkbox } from "./ui/checkbox";
@@ -26,8 +26,6 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { NewFolderDialogComponent } from "./new-folder-dialog";
-import { toast } from "sonner";
-import { createFolder } from "@/actions/folderActions";
 import { useRouter } from "next/navigation";
 import { SleekFileUploadDialog } from "./sleek-file-upload-dialog";
 
@@ -76,16 +74,6 @@ export function StorageOverview() {
     },
   ];
 
-  const handleNewFolder = async (folderName: string) => {
-    const toastId = toast.loading("Creating folder...");
-    try {
-      await createFolder(folderName);
-      router.push("/my-storage");
-      toast.success("Folder created successfully.", { id: toastId });
-    } catch (error) {
-      toast.error("Error creating folder.", { id: toastId });
-    }
-  };
   return (
     <div className="bg-background text-foreground">
       <div className="flex justify-between items-center mb-8">
@@ -141,7 +129,12 @@ export function StorageOverview() {
           <NewFolderDialogComponent
             isOpen={openDialogs.newFolder}
             onClose={() => setOpenDialogs({ ...openDialogs, newFolder: false })}
-            onCreateFolder={(folderName) => handleNewFolder(folderName)}
+            onCreateFolder={(folderName) =>
+              handleNewFolder(folderName, {
+                router,
+                pathname: "/my-storage",
+              })
+            }
           />
           <SleekFileUploadDialog
             open={openDialogs.fileUpload}

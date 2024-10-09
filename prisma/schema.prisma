@@ -23,30 +23,36 @@ model User {
 
 model Document {
   id        String   @id @default(uuid()) @db.Uuid
-  title     String  @unique
+  title     String   
   content   String   // You might consider Json if you have rich content
   userId    String   @db.Uuid
+  folderId  String?  @db.Uuid  // New field to relate to a folder
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   status    DocumentStatus @default(draft)
-  
+
   user      User     @relation(fields: [userId], references: [id])
-  versions   Version[]
+  folder    Folder?  @relation(fields: [folderId], references: [id]) // New relation to Folder model
   sharedLinks SharedLink[]
   activityLogs ActivityLog[]
 }
 
 model Folder {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String  @unique
-  userId    String   @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    
+  userId      String    @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  key         String    
 
-  user      User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   permissions Permission[]
+  documents   Document[] // Relation to store documents in a folder
+  activityLog ActivityLog[]
 
-  ActivityLog ActivityLog[]
+  parentId    String?   @db.Uuid // Foreign key to the parent folder
+  parentFolder Folder?   @relation("Subfolders", fields: [parentId], references: [id])
+  subfolders   Folder[]  @relation("Subfolders") // Relation to store subfolders
 }
 
 model Permission {
@@ -66,15 +72,6 @@ model SharedLink {
   documentId  String   @db.Uuid
   link        String   @unique
   expiresAt   DateTime?
-  createdAt   DateTime @default(now())
-
-  document    Document @relation(fields: [documentId], references: [id])
-}
-
-model Version {
-  id          String   @id @default(uuid()) @db.Uuid
-  documentId  String   @db.Uuid
-  content     String
   createdAt   DateTime @default(now())
 
   document    Document @relation(fields: [documentId], references: [id])
