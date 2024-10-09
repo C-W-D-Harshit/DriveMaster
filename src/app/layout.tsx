@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import TopLoader from "@/components/loaders/Top-Loader";
 import Header from "@/components/layout/Header";
+import { Suspense } from "react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,26 +30,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning >
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
-          forcedTheme="dark"
-        >
-          <TopLoader/>
-          <main className="flex h-dvh w-full relative">
-            <Toaster/>
-            <Sidebar />
-            <div className="h-dvh flex flex-col overflow-hidden overflow-y-auto w-full">
-              <Header/>
-              <div className="p-6">{children}</div>
-            </div>
-          </main>
-        </ThemeProvider>
+        <Suspense>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            disableTransitionOnChange
+            forcedTheme="dark"
+          >
+            <TopLoader />
+            <main className="flex h-dvh w-full relative">
+              <Toaster />
+              <Sidebar />
+              <div className="h-dvh flex flex-col overflow-hidden overflow-y-auto w-full">
+                <Header />
+                <div className="p-6">{children}</div>
+              </div>
+            </main>
+          </ThemeProvider>
+        </Suspense>
       </body>
     </html>
   );
