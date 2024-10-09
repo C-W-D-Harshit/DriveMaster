@@ -20,7 +20,7 @@ export function Sidebar() {
         <div className="w-8 h-8 bg-primary rounded">
           <CropIcon className="w-8 h-8" />
         </div>
-        <h1 className="text-xl font-bold">Beast - CMS</h1>
+        <h1 className="text-xl font-bold">Drive Master</h1>
       </Link>
 
       <div className="p-6">
